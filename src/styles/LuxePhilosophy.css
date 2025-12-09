@@ -1,0 +1,338 @@
+/* ======================================
+   ROOT SECTION
+====================================== */
+
+.luxe-philosophy {
+  width: 100%;
+  height: 100vh;
+  font-family: "PP Rader", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+  background: #050308;
+  color: #fff;
+  overflow-x: hidden; /* กันแกน X แต่ให้เลื่อนลงได้ */
+}
+
+/* ======================================
+   HERO CONTAINER
+====================================== */
+
+.philo-hero-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* BACKGROUND IMAGE */
+.philo-hero-image {
+  position: absolute;
+  inset: 0;
+}
+
+.philo-hero-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  will-change: transform;
+}
+
+/* TEXT LAYER */
+.philo-hero-content {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+}
+
+/* TITLE WRAPPER – ใช้ตัวนี้จัดตำแหน่ง title ทั้งชุด */
+.philo-title-wrapper {
+  position: absolute;
+  top: 75%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* TITLE */
+.philo-hero-title {
+  display: flex;
+  gap: 0.25em;
+  text-transform: uppercase;
+  color: #f9b165;
+  font-size: 110px;
+  line-height: 140px;
+  letter-spacing: 0.04em;
+
+  clip-path: polygon(0 0, 100% 0, 100% 150px, 0 150px);
+}
+
+.philo-postfix {
+  position: relative;
+}
+.philo-postfix > div {
+  height: 147px; /* ให้ตรงกับด้านบน */
+  display: flex;
+  align-items: center; /* ให้ตัวหนังสืออยู่กลางบรรทัด */
+}
+
+/* ===== SUBTEXT STACK ใต้ HERO ===== */
+
+/* ครอบทั้ง block ของข้อความ (วางไว้ล่าง ๆ กลางจอ) */
+.philo-subtext-wrapper {
+  position: absolute;
+  bottom: 30%; /* ปรับความสูงจากขอบล่างได้ตรงนี้ */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  max-width: 720px;
+  z-index: 11;
+  text-align: center;
+}
+
+/* แต่ละ block (ต่อ 1 slide) จะทับซ้อนกัน แล้วให้ GSAP สลับ fade in/out */
+.philo-subtext-block {
+  position: absolute;
+  inset: 0;
+}
+
+/* ตัว p ด้านใน ใช้ layout ปกติ ไม่ต้อง absolute แล้ว */
+.philo-subtext {
+  position: relative;
+  margin: 0 0 0.65em;
+  font-size: 14px;
+  color: rgba(249, 200, 120, 0.95);
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-weight: 300;
+}
+
+/* ==============================
+   CIRCLE LINK — ผูกกับ Hero
+================================ */
+
+.philo-link {
+  position: absolute;
+  bottom: 40%;
+  right: 10%;
+  width: 350px;
+  height: 350px;
+  z-index: 20;
+}
+
+.philo-link-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 300px;
+  height: 300px;
+  transform: translate(-50%, -50%);
+  will-change: transform;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.philo-link-wrapper a {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.philo-link-label {
+  position: absolute;
+  top: 47.5%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.philo-link-label p {
+  text-transform: uppercase;
+  color: #f9b165;
+  font-size: 24px;
+}
+
+.philo-line {
+  height: 28px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+.philo-line-1 {
+  position: relative;
+  width: 80px;
+  left: -4px;
+}
+
+.philo-line-2 {
+  position: relative;
+  width: 120px;
+  left: 32px;
+}
+
+.philo-line p {
+  position: absolute;
+  transform: translateY(0);
+  will-change: transform;
+}
+
+/* กัน hover ได้ แต่ยังคลิกที่วงกลมได้เพราะ pointer-events:auto อยู่ที่ wrapper */
+.philo-link svg,
+.philo-link-label {
+  pointer-events: none;
+}
+
+/* ======================================
+   PRODUCT DETAILS SECTION
+====================================== */
+
+.philo-product-section {
+  padding: 120px 8vw;
+  background: #0c0305;
+  color: rgba(255, 230, 200, 0.9);
+  text-align: center;
+}
+
+.philo-heading {
+  font-size: 42px;
+  letter-spacing: 0.05em;
+  margin-bottom: 20px;
+  color: #f9b165;
+  font-family: "ClashDisplay", serif;
+}
+
+.philo-description {
+  max-width: 700px;
+  margin: 0 auto;
+  line-height: 1.8;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+/* Feature cards */
+.philo-features {
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.philo-feature-card {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 24px 32px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  max-width: 280px;
+  backdrop-filter: blur(12px);
+}
+
+.philo-feature-card h3 {
+  color: #f9b165;
+  font-size: 18px;
+  margin-bottom: 8px;
+}
+
+.philo-feature-card p {
+  opacity: 0.8;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ======================================
+   QUOTE SECTION
+====================================== */
+
+.philo-quote-section {
+  padding: 100px 8vw;
+  background: linear-gradient(180deg, #0c0305, #180306);
+  text-align: center;
+}
+
+.philo-quote {
+  font-size: 24px;
+  font-style: italic;
+  color: #f9b165;
+  max-width: 780px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.philo-quote-author {
+  margin-top: 14px;
+  opacity: 0.6;
+}
+
+/* ======================================
+   CTA BUTTON
+====================================== */
+
+.philo-bottom-cta {
+  text-align: center;
+  padding: 80px 0 120px;
+  background: #180306;
+}
+
+.philo-btn {
+  padding: 14px 38px;
+  background: transparent;
+  border: 1px solid #f9b165;
+  color: #f9b165;
+  border-radius: 999px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: 0.3s ease-out;
+}
+
+.philo-btn:hover {
+  background: #f9b165;
+  color: #180306;
+}
+
+/* ======================================
+   RESPONSIVE
+====================================== */
+
+@media (max-width: 900px) {
+  .philo-title-wrapper {
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+
+  .philo-hero-title {
+    font-size: 42px;
+    line-height: 52px;
+    clip-path: polygon(0 0, 100% 0, 100% 60px, 0 60px);
+  }
+
+  .philo-subtext {
+    top: 82%;
+    width: 82%;
+    font-size: 14px;
+  }
+
+  .philo-link {
+    width: 260px;
+    height: 260px;
+    bottom: 8%;
+    right: 6%;
+  }
+
+  .philo-link-wrapper {
+    width: 220px;
+    height: 220px;
+  }
+
+  .philo-link-label p {
+    font-size: 18px;
+  }
+
+  .philo-product-section {
+    padding: 80px 6vw;
+  }
+
+  .philo-heading {
+    font-size: 30px;
+  }
+
+  .philo-description {
+    font-size: 14px;
+  }
+}
