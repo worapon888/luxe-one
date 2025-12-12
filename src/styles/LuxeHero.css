@@ -384,38 +384,6 @@ img {
   transform: translate(-50%, 50%) scale(1.03);
 }
 
-/* SIDE INDICATOR */
-.hero-indicator {
-  position: absolute;
-  right: 3vw;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.4rem;
-  z-index: 6;
-}
-
-/* ตัวเลข */
-.indicator {
-  font-size: 0.85rem;
-  font-family: "DM Sans", sans-serif;
-  opacity: 0.4;
-}
-
-.indicator.active {
-  opacity: 1;
-}
-
-/* เส้นแนวตั้งสั้น */
-.indicator-vline {
-  width: 1px;
-  height: 18px;
-  background: rgba(255, 255, 255, 0.5);
-  opacity: 0.4;
-}
-
 /* LOGO */
 .logo {
   position: absolute;

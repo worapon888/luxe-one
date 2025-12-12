@@ -1,13 +1,8 @@
-import LuxeHero from "./sections/LuxeHero";
-import LuxePhilosophy from "./sections/LuxePhilosophy";
+// src/App.tsx
+import LuxePage from "./sections/LuxePhilosophy";
 
 function App() {
-  return (
-    <>
-      {/* <LuxeHero /> */}
-      <LuxePhilosophy />
-    </>
-  );
+  return <LuxePage />;
 }
 
 export default App;
