@@ -353,27 +353,54 @@
   right: 3vw;
   top: 50%;
   transform: translateY(-50%);
+  z-index: 30;
+
+  perspective: 800px;
+  transform-style: preserve-3d;
+}
+
+/* ✅ ใส่ track ให้ hook หาเจอ */
+.philo-indicator-track {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.3rem;
-  z-index: 30;
-
-  /* สำคัญสำหรับปุ่มหมุน 3D */
-  perspective: 800px;
-  transform-style: preserve-3d;
 }
 
 .philo-ind-item {
   font-size: 0.9rem;
   font-family: "DM Sans", sans-serif;
-  opacity: 0.35;
+  opacity: 0.25;
   transform-origin: center center;
+  will-change: opacity, transform, filter;
 }
 
+/* base line */
 .philo-ind-line {
+  position: relative;
   width: 1px;
   height: 18px;
-  background: rgba(255, 255, 255, 0.6);
-  opacity: 0.4;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+
+/* ✅ fill line ที่ animate */
+.philo-ind-line-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+
+  transform-origin: top;
+  transform: scaleY(0);
+  opacity: 0.95;
+
+  will-change: transform, opacity;
+}
+
+/* optional: เลข active ดูคมขึ้น */
+.philo-ind-item.active {
+  opacity: 1;
 }

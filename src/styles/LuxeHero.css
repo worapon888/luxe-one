@@ -40,7 +40,7 @@ img {
   height: 100svh;
   pointer-events: none;
   overflow: hidden;
-  z-index: 20; /* สูงกว่า hero */
+  z-index: 9999; /* สูงกว่า hero */
   color: var(--fg);
   font-family: "PP Neue Montreal", "Inter", system-ui, sans-serif;
 }
