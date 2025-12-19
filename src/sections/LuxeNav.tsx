@@ -221,6 +221,7 @@ const LuxeNav = () => {
   return (
     <nav className="menu-nav">
       <div className="menu-bar">
+        <div className="logo">LUXE.ONE</div>
         <div className="menu-toggle-btn">
           <div className="menu-toggle-label">
             <p>Menu</p>

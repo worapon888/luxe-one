@@ -1,27 +1,22 @@
 /* ======================================
    ROOT SECTION
 ====================================== */
-/* LOGO */
-.logo {
-  position: absolute;
-  top: 3vh;
-  left: 3vw;
-  font-family: "DM Sans", sans-serif;
-  font-size: 1.1rem;
-  letter-spacing: 0.15em;
-  font-weight: 700;
-  color: #ffffffd8;
-  z-index: 10;
-}
 
 .luxe-philosophy {
   width: 100%;
-  height: 100vh;
+  min-height: 100svh; /* กัน mobile url bar */
+  height: 100dvh; /* browser ใหม่ */
   font-family: "PP Rader", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
   background: #050308;
   color: #fff;
-  overflow-x: hidden; /* กันแกน X แต่ให้เลื่อนลงได้ */
+
+  overflow-x: hidden;
+  overflow-y: auto;
+
+  /* ❌ ห้าม none ถ้าอยากให้มือถือเลื่อนได้ */
+  touch-action: pan-y;
+  overscroll-behavior-y: contain;
 }
 
 /* ======================================
@@ -57,7 +52,7 @@
 /* TITLE WRAPPER – ใช้ตัวนี้จัดตำแหน่ง title ทั้งชุด */
 .philo-title-wrapper {
   position: absolute;
-  top: 75%;
+  top: 60%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
@@ -65,23 +60,34 @@
 /* TITLE */
 .philo-hero-title {
   display: flex;
+  align-items: flex-end;
   gap: 0.25em;
   text-transform: uppercase;
   color: #f9b165;
-  font-size: 110px;
-  line-height: 140px;
+  align-items: baseline;
+
+  font-size: clamp(38px, 6vw, 110px);
+  line-height: clamp(46px, 7vw, 140px);
   letter-spacing: 0.04em;
 
-  clip-path: polygon(0 0, 100% 0, 100% 150px, 0 150px);
+  /* ตัดกรอบตามความสูงจริงแทน hardcode */
+  clip-path: inset(0 0 0 0);
 }
 
 .philo-postfix {
   position: relative;
 }
+.philo-postfix-outer {
+  position: relative;
+  overflow: hidden;
+  height: auto; /* ✅ ให้ JS เป็นคนกำหนดสูงจริง */
+}
+
 .philo-postfix > div {
-  height: 147px; /* ให้ตรงกับด้านบน */
-  display: flex;
-  align-items: center; /* ให้ตัวหนังสืออยู่กลางบรรทัด */
+  display: block; /* ✅ ไม่ใช้ flex */
+  white-space: nowrap;
+  line-height: 1; /* ✅ ล็อค baseline */
+  padding-bottom: 0.08em; /* ✅ กันตัวอักษรจม/โดน clip */
 }
 
 /* ===== SUBTEXT STACK ใต้ HERO ===== */
@@ -121,32 +127,36 @@
 ================================ */
 
 .philo-link {
+  --ring-size: 300px;
+
   position: absolute;
   bottom: 40%;
   right: 10%;
-  width: 350px;
-  height: 350px;
+  width: var(--ring-size);
+  height: var(--ring-size);
   z-index: 999;
 }
 
 .philo-link-wrapper {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 300px;
-  height: 300px;
-  transform: translate(-50%, -50%);
-  will-change: transform;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform: none;
   pointer-events: auto;
   cursor: pointer;
 }
 
 .philo-link-wrapper a {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 100%;
 }
-
+.philo-link-wrapper svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
 .philo-link-label {
   position: absolute;
   top: 47.5%;
@@ -302,37 +312,44 @@
 
 @media (max-width: 900px) {
   .philo-title-wrapper {
-    top: 70%;
+    top: 60%;
     left: 50%;
     transform: translate(-50%, -50%);
+    width: 92%;
   }
 
   .philo-hero-title {
     font-size: 42px;
     line-height: 52px;
-    clip-path: polygon(0 0, 100% 0, 100% 60px, 0 60px);
+    clip-path: none;
+    justify-content: center;
+    text-align: center;
+  }
+  .philo-subtext-wrapper {
+    bottom: 22%;
+    width: min(86%, 560px);
   }
 
   .philo-subtext {
-    top: 82%;
-    width: 82%;
-    font-size: 14px;
+    font-size: 12.5px;
+    line-height: 1.45;
+    letter-spacing: 0.03em;
   }
 
   .philo-link {
-    width: 260px;
-    height: 260px;
-    bottom: 8%;
+    width: 200px;
+    height: 200px;
+    bottom: 10%;
     right: 6%;
   }
 
   .philo-link-wrapper {
-    width: 220px;
-    height: 220px;
+    width: 200px;
+    height: 200px;
   }
 
   .philo-link-label p {
-    font-size: 18px;
+    font-size: 16px;
   }
 
   .philo-product-section {
@@ -345,6 +362,8 @@
 
   .philo-description {
     font-size: 14px;
+  }
+  .philo-indicator {
   }
 }
 /* WRAPPER: ให้ตำแหน่ง + perspective */
@@ -403,4 +422,99 @@
 /* optional: เลข active ดูคมขึ้น */
 .philo-ind-item.active {
   opacity: 1;
+}
+
+/* =========================
+   <= 600px (phone)
+========================= */
+@media (max-width: 600px) {
+  .philo-title-wrapper {
+    top: 60%;
+    width: 92%;
+  }
+
+  .philo-hero-title {
+    justify-content: center;
+    text-align: center;
+  }
+
+  /* ให้คำว่า Developing + postfix ขึ้นบรรทัดใหม่ได้ */
+  .philo-hero-title {
+    flex-wrap: wrap;
+    row-gap: 0.1em;
+  }
+
+  .philo-subtext-wrapper {
+    bottom: 13%;
+    width: 88%;
+  }
+
+  .philo-subtext {
+    font-size: 10px;
+    letter-spacing: 0.03em;
+  }
+
+  /* วงกลมกินพื้นที่เยอะบนมือถือ: ย่อหรือซ่อนไปเลย */
+  .philo-link {
+    width: 120px;
+    height: 120px;
+    top: 20%;
+    right: 20%;
+  }
+
+  .philo-link-wrapper {
+    width: 200px;
+    height: 200px;
+  }
+
+  .philo-link-label p {
+    font-size: 17px;
+  }
+
+  /* indicator ให้เล็กลง */
+  .philo-indicator {
+    right: 12px;
+    transform: translateY(-50%) scale(0.85);
+  }
+
+  .philo-ind-item {
+    font-size: 0.8rem;
+  }
+
+  .philo-ind-line {
+    height: 14px;
+  }
+}
+
+/* =========================
+   <= 420px (small phone)
+========================= */
+@media (max-width: 420px) {
+  .philo-title-wrapper {
+    top: 64%;
+  }
+
+  .philo-subtext-wrapper {
+    bottom: 16%;
+    width: 92%;
+  }
+
+  /* ถ้าพื้นที่แน่นมาก ให้ซ่อนวงกลมไปเลย (กันชน UI) */
+  .philo-link {
+    display: none;
+  }
+
+  .philo-indicator {
+    right: 10px;
+    transform: translateY(-50%) scale(0.8);
+  }
+}
+/* มือถือ/แท็บเล็ต: ชัวร์ว่า slot สูงตาม font จริง */
+@media (max-width: 900px) {
+  .philo-postfix-outer {
+    height: 1.05em;
+  }
+  .philo-postfix > div {
+    height: 1.05em;
+  }
 }

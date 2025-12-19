@@ -1,0 +1,95 @@
+.loader {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+
+  z-index: 999999;
+  pointer-events: none;
+
+  background: #990101;
+
+  /* ✅ สำคัญมาก: กัน mix-blend ไปกัดกับ page */
+  isolation: isolate;
+}
+
+/* ================= CLIPS ================= */
+
+.loader-clip {
+  position: absolute;
+  width: 100vw;
+  height: 33.3vh;
+  overflow: clip;
+  z-index: 10000;
+}
+
+.clip-top {
+  top: 0;
+  clip-path: inset(0 0 0 0);
+  background: #000;
+}
+
+.clip-bottom {
+  bottom: 0;
+  clip-path: inset(0 0 0 0);
+  background: #000;
+}
+
+.clip-center {
+  position: absolute; /* 👈 เปลี่ยนจาก relative */
+  top: 33.3vh;
+  left: 0;
+  width: 100vw;
+  height: 33.3vh;
+  overflow: hidden;
+}
+
+/* ================= MARQUEE ================= */
+
+.marquee {
+  position: absolute;
+  top: 200%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  width: 200vw;
+
+  color: #990101;
+  font-weight: 300;
+  font-size: 16vw;
+
+  white-space: nowrap;
+
+  /* blend ใช้เฉพาะช่วงโชว์ */
+  mix-blend-mode: difference;
+
+  will-change: transform, opacity;
+}
+
+.marquee-container {
+  width: max-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  gap: 0.15em;
+  padding-top: 0.2em;
+}
+
+.marquee-container span {
+  letter-spacing: -0.01em;
+}
+
+/* ================= DISSOLVE PHASE ================= */
+/* 👇 class นี้จะถูกใส่ตอนใกล้ handoff */
+
+.loader.is-dissolving .marquee {
+  /* ✅ ตัด blend ออกก่อน fade เพื่อไม่ให้ flash */
+  mix-blend-mode: normal;
+  color: #990101;
+}
+
+/* กัน blur ทำให้ขาว */
+.loader.is-dissolving {
+  background: #990101;
+}

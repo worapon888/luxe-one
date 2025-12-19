@@ -1,7 +1,10 @@
 // src/hooks/useLuxePhilosophyAnimation.ts
 import { useEffect } from "react";
 import gsap from "gsap";
+import Observer from "gsap/dist/Observer";
 import { animateCircle } from "../utils/animateCircle";
+
+gsap.registerPlugin(Observer);
 
 export function useLuxePhilosophyAnimation(
   rootRef: React.RefObject<HTMLElement | null>
@@ -15,9 +18,14 @@ export function useLuxePhilosophyAnimation(
       root.querySelectorAll<HTMLElement>(".philo-hero-image")
     );
     const postfix = root.querySelector<HTMLElement>(".philo-postfix");
+    const postfixOuter = root.querySelector<HTMLElement>(
+      ".philo-postfix-outer"
+    );
+
     const subtextBlocks = Array.from(
       root.querySelectorAll<HTMLElement>(".philo-subtext-block")
     );
+
     const link = root.querySelector<HTMLElement>(".philo-link");
     const linkWrapper = root.querySelector<HTMLElement>(".philo-link-wrapper");
     const path = root.querySelector<SVGPathElement>("#philo-link-svg");
@@ -39,7 +47,6 @@ export function useLuxePhilosophyAnimation(
       root.querySelectorAll<HTMLElement>(".philo-ind-line-fill")
     );
 
-    // ต้องมีของหลัก ๆ ถึงจะทำต่อ
     if (
       !slides.length ||
       !postfix ||
@@ -52,10 +59,9 @@ export function useLuxePhilosophyAnimation(
       return;
     }
 
-    const totalSlides = slides.length; // 0..3
+    const totalSlides = slides.length;
     let currentIndex = 0;
     let isAnimating = false;
-    let currentTopValue = 0;
 
     const getContentIndex = (slideIndex: number) => slideIndex - 1;
 
@@ -67,6 +73,27 @@ export function useLuxePhilosophyAnimation(
 
     const OPACITY_FUTURE = 0.25;
     const OPACITY_PASSED = 1;
+
+    // ✅ เริ่มโชว์วงกลมตั้งแต่สไลด์ 2 (index 1)
+    const LINK_START_INDEX = 1;
+
+    // =========================
+    // POSTFIX: measure real step
+    // =========================
+    let postfixStep = 0;
+
+    const measurePostfixStep = () => {
+      const first = root.querySelector<HTMLElement>(".philo-postfix > div");
+      const h = first?.offsetHeight || 0;
+
+      postfixStep = h > 0 ? h : window.innerWidth < 900 ? 42 : 150;
+
+      if (postfixOuter) {
+        gsap.set(postfixOuter, { overflow: "hidden", height: postfixStep });
+      }
+    };
+
+    measurePostfixStep();
 
     // ---------- INDICATOR HELPERS ----------
     function applyIndicatorStatic(activeIndex: number) {
@@ -98,54 +125,31 @@ export function useLuxePhilosophyAnimation(
       gsap.killTweensOf(indLineFills);
     }
 
-    /**
-     * ✅ สร้าง step path “สำหรับ Indicator แบบเส้นตรง”
-     *
-     * - ปกติ: 1 step (เช่น 1->2)
-     * - Jump (เช่น 1->4): [2,3,4]
-     * - Wrap ที่เกิดจาก modulo:
-     *    - scroll DOWN จาก 4 -> 1 (3 -> 0): ให้ถอยกลับ [3->2->1->0] = [2,1,0]
-     *    - scroll UP   จาก 1 -> 4 (0 -> 3): ให้ไปข้างหน้า [0->1->2->3] = [1,2,3]
-     */
     function buildIndicatorPath(
       from: number,
       to: number,
-      wheelDir: "down" | "up",
+      dir: "down" | "up",
       total: number
     ) {
       const steps: number[] = [];
-
-      // case: modulo wrap
-      const isWrapDown = wheelDir === "down" && from === total - 1 && to === 0;
-      const isWrapUp = wheelDir === "up" && from === 0 && to === total - 1;
+      const isWrapDown = dir === "down" && from === total - 1 && to === 0;
+      const isWrapUp = dir === "up" && from === 0 && to === total - 1;
 
       if (isWrapDown) {
-        // 4 -> 1 : ถอยกลับ 4->3->2->1
         for (let i = from - 1; i >= 0; i--) steps.push(i);
         return steps;
       }
-
       if (isWrapUp) {
-        // 1 -> 4 : ไปข้างหน้า 1->2->3->4
         for (let i = from + 1; i <= total - 1; i++) steps.push(i);
         return steps;
       }
 
-      // non-wrap jump ปกติ (linear)
-      if (to > from) {
-        for (let i = from + 1; i <= to; i++) steps.push(i);
-      } else if (to < from) {
-        for (let i = from - 1; i >= to; i--) steps.push(i);
-      }
+      if (to > from) for (let i = from + 1; i <= to; i++) steps.push(i);
+      else if (to < from) for (let i = from - 1; i >= to; i--) steps.push(i);
 
       return steps;
     }
 
-    /**
-     * ✅ 1 STEP ONLY: เลขวิ่งตามเส้น
-     * - DOWN: เส้น fill ก่อน -> แล้วเลขปลายทางค่อยขาว
-     * - UP:   เส้น retract ก่อน -> แล้วเลขต้นทางค่อยเทา
-     */
     function animateIndicatorStep(
       tl: gsap.core.Timeline,
       fromIndex: number,
@@ -156,23 +160,18 @@ export function useLuxePhilosophyAnimation(
 
       const isDown = toIndex > fromIndex;
 
-      // กัน flash ของปลายทาง
       tl.set(
         indItems[toIndex],
         { opacity: isDown ? OPACITY_FUTURE : OPACITY_PASSED, overwrite: true },
         at
       );
 
-      // ✅ fill index สำหรับ 1 step
-      // DOWN: เติมเส้น between from->to = fromIndex
-      // UP:   ถอยเส้น between to->from = toIndex
       const lineIdx = isDown ? fromIndex : toIndex;
       const fill = indLineFills[lineIdx];
 
       const LINE_DUR = 0.35;
       const NUM_DUR = 0.25;
 
-      // 1) เส้นวิ่งก่อน
       if (fill) {
         tl.to(
           fill,
@@ -186,9 +185,7 @@ export function useLuxePhilosophyAnimation(
         );
       }
 
-      // 2) เลข “ตามเส้น”
       if (isDown) {
-        // เส้นจบ -> ค่อยทำให้เลขปลายทางขาว
         tl.to(
           indItems[toIndex],
           {
@@ -200,7 +197,6 @@ export function useLuxePhilosophyAnimation(
           ">+=0.04"
         );
       } else {
-        // เส้นถอยจบ -> ค่อยทำให้เลขต้นทางเทา
         tl.to(
           indItems[fromIndex],
           {
@@ -213,7 +209,6 @@ export function useLuxePhilosophyAnimation(
         );
       }
 
-      // 3) active ขยับตาม step
       tl.add(() => {
         indItems[fromIndex]?.classList.remove("active");
         indItems[toIndex]?.classList.add("active");
@@ -240,26 +235,77 @@ export function useLuxePhilosophyAnimation(
       }
     });
 
+    // content + link init
     gsap.set(contentWrapper, { autoAlpha: 0 });
     gsap.set(link, { autoAlpha: 0 });
-    subtextBlocks.forEach((block) => gsap.set(block, { autoAlpha: 0, y: 20 }));
 
+    subtextBlocks.forEach((b) => gsap.set(b, { autoAlpha: 0, y: 20 }));
+
+    // circle init
     const length = path.getTotalLength();
     gsap.set(path, {
       strokeDasharray: length,
-      strokeDashoffset: 0,
+      strokeDashoffset: length, // start "not drawn"
       rotation: -90,
       transformOrigin: "center center",
     });
 
-    // ---------- INDICATOR INIT ----------
     if (hasIndicator) applyIndicatorStatic(currentIndex);
 
     const onResize = () => {
       if (isAnimating) return;
+      measurePostfixStep();
+      const postfixIndexNow = Math.max(currentIndex - 1, 0);
+      gsap.set(postfix, { y: -postfixIndexNow * postfixStep, overwrite: true });
       if (hasIndicator) applyIndicatorStatic(currentIndex);
     };
     window.addEventListener("resize", onResize);
+
+    // =========================
+    // ✅ Circle helpers (KEY FIX)
+    // =========================
+
+    // “รอบที่สองอย่างเดียว” = start จาก strokeDashoffset = length แล้ววิ่งไป 0
+    const animateCircleSecondRoundOnly = (p: SVGPathElement) => {
+      const L = p.getTotalLength();
+      const t = gsap.timeline();
+
+      t.set(p, { strokeDasharray: L, strokeDashoffset: L, scale: 1 }).to(p, {
+        strokeDashoffset: 0,
+        duration: 1,
+        ease: "power2.inOut",
+      });
+
+      return t;
+    };
+
+    const playCircle = (
+      tl: gsap.core.Timeline,
+      mode: "secondOnly" | "double",
+      at: number | string = 0
+    ) => {
+      // กันซ้อนจาก tween เก่า (สำคัญมาก)
+      gsap.killTweensOf(path);
+
+      // set rotation ทุกครั้งให้เหมือนเดิม
+      tl.set(
+        path,
+        {
+          rotation: -90,
+          transformOrigin: "center center",
+        },
+        at
+      );
+
+      // ✅ 1→2 = secondOnly
+      // ✅ ที่เหลือ = double (animateCircle เดิม 2 phase)
+      tl.add(
+        mode === "secondOnly"
+          ? animateCircleSecondRoundOnly(path)
+          : animateCircle(path),
+        at
+      );
+    };
 
     // ---------- MAIN FUNCTION ----------
     const showSlide = (nextIndex: number, direction: "up" | "down") => {
@@ -275,8 +321,13 @@ export function useLuxePhilosophyAnimation(
         currentSlide.querySelector<HTMLElement>(".philo-main-image");
       const nextImg = nextSlide.querySelector<HTMLElement>(".philo-main-image");
 
-      const shouldShowLinkNext = nextIndex >= 2;
-      const isLinkVisibleNow = currentIndex >= 2;
+      if (!currentImg || !nextImg) {
+        isAnimating = false;
+        return;
+      }
+
+      const shouldShowLinkNext = nextIndex >= LINK_START_INDEX;
+      const isLinkVisibleNow = currentIndex >= LINK_START_INDEX;
 
       const currentContentIndex = getContentIndex(currentIndex);
       const nextContentIndex = getContentIndex(nextIndex);
@@ -285,11 +336,6 @@ export function useLuxePhilosophyAnimation(
         currentContentIndex >= 0 ? subtextBlocks[currentContentIndex] : null;
       const nextBlock =
         nextContentIndex >= 0 ? subtextBlocks[nextContentIndex] : null;
-
-      if (!currentImg || !nextImg) {
-        isAnimating = false;
-        return;
-      }
 
       const isSlowTextSlide = nextIndex === 1 || nextIndex === 3;
       const textDelay = isSlowTextSlide ? 0.8 : 0;
@@ -305,11 +351,15 @@ export function useLuxePhilosophyAnimation(
       gsap.set(nextImg, { scale: 2, top: "4em" });
       gsap.set(currentSlide, { zIndex: 1 });
 
-      const lineHeightTitle = window.innerWidth < 900 ? 42 : 150;
+      measurePostfixStep();
+
       const postfixIndex = Math.max(nextIndex - 1, 0);
-      currentTopValue = -postfixIndex * lineHeightTitle;
+      const targetTop = nextIndex === 0 ? 0 : -postfixIndex * postfixStep;
+
+      gsap.killTweensOf(postfix);
 
       const tl = gsap.timeline({
+        defaults: { overwrite: true },
         onComplete: () => {
           gsap.set(currentSlide, { zIndex: 0 });
           gsap.set(nextSlide, { zIndex: 1 });
@@ -318,29 +368,26 @@ export function useLuxePhilosophyAnimation(
         },
       });
 
-      // ✅ INDICATOR: เลขต้องวิ่งตามเส้นแบบ step-by-step
+      // Indicator
       if (hasIndicator) {
-        const wheelDir = direction === "down" ? "down" : "up";
+        const dir = direction === "down" ? "down" : "up";
         const steps = buildIndicatorPath(
           currentIndex,
           nextIndex,
-          wheelDir,
+          dir,
           totalSlides
         );
-
         let from = currentIndex;
 
-        // สำคัญ: ต่อคิวด้วย ">" เท่านั้น
         steps.forEach((to) => {
           animateIndicatorStep(tl, from, to, ">");
           from = to;
         });
 
-        // lock state ทีเดียวหลังจบ jump ทั้งหมด
         tl.add(() => applyIndicatorStatic(nextIndex), ">");
       }
 
-      // ---------- TEXT ----------
+      // Text layer
       if (currentIndex === 0 && nextIndex !== 0) {
         tl.fromTo(
           contentWrapper,
@@ -356,30 +403,31 @@ export function useLuxePhilosophyAnimation(
         );
       }
 
-      // ---------- CIRCLE CTA ----------
+      // CTA show/hide
+      const linkInAt = 0;
       if (!isLinkVisibleNow && shouldShowLinkNext) {
         tl.fromTo(
           link,
           { autoAlpha: 0 },
-          { autoAlpha: 1, duration: 0.8, ease: "power2.out" },
-          textDelay + 0.3
+          { autoAlpha: 1, duration: 0.6, ease: "power2.out" },
+          linkInAt
         );
       } else if (isLinkVisibleNow && !shouldShowLinkNext) {
-        tl.to(link, { autoAlpha: 0, duration: 0.6, ease: "power2.out" }, 0);
+        tl.to(link, { autoAlpha: 0, duration: 0.4, ease: "power2.out" }, 0);
       }
 
-      // ---------- Postfix ----------
+      // Postfix
       tl.to(
         postfix,
         {
-          y: currentTopValue,
+          y: targetTop,
           duration: isSlowTextSlide ? 2.4 : 2,
           ease: "power4.inOut",
         },
         textDelay
       );
 
-      // ---------- Subtext blocks ----------
+      // Subtext blocks
       if (currentBlock) {
         tl.to(
           currentBlock,
@@ -401,10 +449,13 @@ export function useLuxePhilosophyAnimation(
         );
       }
 
-      // ---------- วงแหวนหมุน ----------
-      tl.add(animateCircle(path), 0);
+      // ✅ Circle logic (THE FIX)
+      if (shouldShowLinkNext || isLinkVisibleNow) {
+        const isSlide1to2 = currentIndex === 0 && nextIndex === 1;
+        playCircle(tl, isSlide1to2 ? "secondOnly" : "double", 0);
+      }
 
-      // ---------- BG images ----------
+      // BG images
       tl.to(
         currentImg,
         { scale: 2, top: "4em", duration: 2, ease: "power3.inOut" },
@@ -426,20 +477,31 @@ export function useLuxePhilosophyAnimation(
         );
     };
 
-    // ---------- WHEEL ----------
-    const onWheel = (e: WheelEvent) => {
-      if (isAnimating) return;
-
-      if (e.deltaY > 0) {
-        const next = (currentIndex + 1) % totalSlides;
-        showSlide(next, "down");
-      } else if (e.deltaY < 0) {
-        const next = (currentIndex - 1 + totalSlides) % totalSlides;
-        showSlide(next, "up");
-      }
+    // ---------- OBSERVER ----------
+    const isInteractiveTarget = (t: EventTarget | null) => {
+      if (!(t instanceof Element)) return false;
+      return !!t.closest(
+        "a,button,input,textarea,select,.menu-bar,.menu-overlay,.philo-link,.philo-link-wrapper"
+      );
     };
 
-    root.addEventListener("wheel", onWheel, { passive: true });
+    const observer = Observer.create({
+      target: root,
+      type: "wheel,touch",
+      tolerance: 12,
+      wheelSpeed: 1,
+      preventDefault: true,
+      onDown: (self) => {
+        if (isAnimating) return;
+        if (isInteractiveTarget(self.event?.target)) return;
+        showSlide((currentIndex + 1) % totalSlides, "down");
+      },
+      onUp: (self) => {
+        if (isAnimating) return;
+        if (isInteractiveTarget(self.event?.target)) return;
+        showSlide((currentIndex - 1 + totalSlides) % totalSlides, "up");
+      },
+    });
 
     // ---------- CIRCLE FOLLOW MOUSE ----------
     const xTo = gsap.quickTo(linkWrapper, "x", {
@@ -467,16 +529,16 @@ export function useLuxePhilosophyAnimation(
     link.addEventListener("mousemove", onMove);
     link.addEventListener("mouseleave", onLeave);
 
-    gsap.set(linkWrapper, { x: 0, y: 0, xPercent: -50, yPercent: -50 });
-
     return () => {
       window.removeEventListener("resize", onResize);
+      observer.kill();
 
-      root.removeEventListener("wheel", onWheel);
       link.removeEventListener("mousemove", onMove);
       link.removeEventListener("mouseleave", onLeave);
 
       if (hasIndicator) killIndicatorTweens();
+      gsap.killTweensOf(path);
+      gsap.killTweensOf(postfix);
     };
   }, [rootRef]);
 }

@@ -1,8 +1,7 @@
-// src/App.tsx
-import LuxePage from "./sections/LuxePhilosophy";
+import LuxePreloader from "./sections/LuxePreloader";
 
 function App() {
-  return <LuxePage />;
+  return <LuxePreloader />;
 }
 
 export default App;

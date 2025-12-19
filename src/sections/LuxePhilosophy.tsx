@@ -15,7 +15,6 @@ const LuxePage = () => {
 
   return (
     <section className="luxe-philosophy" ref={rootRef}>
-      <div className="logo">LUXE.ONE</div>
       <LuxeNav />
 
       {/* GLOBAL INDICATOR */}
